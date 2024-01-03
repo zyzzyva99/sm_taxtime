@@ -84,12 +84,12 @@ def query_transactions(db_path, decoded_coinbase, start_date=None, end_date=None
         reward_date = datetime.utcfromtimestamp(layer_id * 300 + 1689321600).strftime('%Y-%m-%d %H:%M:%S')
 
         processed_reward = (
-            "Reward",
+            "Mining",
             layer_reward / 1000000000,  # SMH amount
             "SMH",
             "",  # SellAmount
             "",  # SellCurrency
-            0,  # FeeAmount
+            "",  # FeeAmount
             "",  # FeeCurrency
             "",  # Exchange
             "",  # Group
