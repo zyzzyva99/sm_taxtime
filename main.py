@@ -1,7 +1,7 @@
 import sqlite3
 import csv
 import argparse
-from datetime import datetime, timezone
+from datetime import datetime, timedelta
 import sys
 
 def bech32_to_hex(bech32_address):
@@ -44,12 +44,7 @@ def bech32_to_hex(bech32_address):
     return bytes(decoded_bytes).hex()
 
 def calculate_layer_from_date(date, genesis_date_str="2023-07-14T08:00:00+00:00", layer_interval=300):
-    genesis_date = datetime.fromisoformat(genesis_date_str)
-
-    # Ensure the input date is also offset-aware (UTC)
-    if date.tzinfo is None or date.tzinfo.utcoffset(date) is None:
-        date = date.replace(tzinfo=timezone.utc)
-
+    genesis_date = datetime.fromisoformat(genesis_date_str.replace("Z", "+00:00"))
     layer = int((date - genesis_date).total_seconds() / layer_interval)
     return layer
 
@@ -84,9 +79,9 @@ def query_transactions(db_path, decoded_coinbase, start_date=None, end_date=None
         reward_date = datetime.utcfromtimestamp(layer_id * 300 + 1689321600).strftime('%Y-%m-%d %H:%M:%S')
 
         processed_reward = (
-            "Mining",
-            layer_reward / 1000000000,  # SMH amount
-            "SMH",
+            "Mining",  # Type
+            layer_reward / 1000000000,  # RewardAmount (SMH)
+            "SMH",  # BuyCurrency
             "",  # SellAmount
             "",  # SellCurrency
             "",  # FeeAmount
@@ -94,21 +89,31 @@ def query_transactions(db_path, decoded_coinbase, start_date=None, end_date=None
             "",  # Exchange
             "",  # Group
             f"Layer Reward from Layer {layer_id}",  # Comment
-            reward_date  # Date
+            reward_date,  # Date
+            layer_id  # Explicitly including layer_id
         )
         processed_rewards.append(processed_reward)
 
     conn.close()
     return processed_rewards
 
-def export_to_csv(transactions, filename=None):
+def export_to_csv(transactions, filename=None, csv_format='generic'):
     writer = csv.writer(sys.stdout if filename is None else open(filename, mode='w', newline=''))
-    headers = ["Type", "BuyAmount", "BuyCurrency", "SellAmount", "SellCurrency", 
-               "FeeAmount", "FeeCurrency", "Exchange", "Group", "Comment", "Date"]
+
+    if csv_format == 'tokentax':
+        headers = ["Type", "BuyAmount", "BuyCurrency", "SellAmount", "SellCurrency", 
+                   "FeeAmount", "FeeCurrency", "Exchange", "Group", "Comment", "Date"]
+    elif csv_format == 'generic':
+        headers = ["Layer", "RewardAmount", "Date"]
+
     writer.writerow(headers)
-    
+
     for transaction in transactions:
-        writer.writerow(transaction)
+        if csv_format == 'tokentax':
+            writer.writerow(transaction)
+        elif csv_format == 'generic':
+            layer_id, reward_amount, _, _, _, _, _, _, _, _, date, _ = transaction
+            writer.writerow([layer_id, reward_amount, date])
 
     if filename:
         print(f"Export completed successfully. Data written to {filename}")
@@ -120,6 +125,7 @@ def main():
     parser.add_argument('--end_date', type=str, help='End date (inclusive), format YYYY-MM-DD', default=None)
     parser.add_argument('--db_path', type=str, help='Path to the SQLite database file', default=None)
     parser.add_argument('--output_file', type=str, help='Path to output CSV file', default=None)
+    parser.add_argument('--csv_format', type=str, help='Format of the CSV file (e.g., tokentax, generic)', default='generic')
 
     args = parser.parse_args()
 
@@ -131,7 +137,7 @@ def main():
     decoded_coinbase = bech32_to_hex(args.coinbase)
 
     transactions = query_transactions(args.db_path, decoded_coinbase, args.start_date, args.end_date)
-    export_to_csv(transactions, args.output_file)
+    export_to_csv(transactions, args.output_file, args.csv_format)
 
 if __name__ == "__main__":
     main()
