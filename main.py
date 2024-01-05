@@ -105,6 +105,9 @@ def export_to_csv(transactions, filename=None, csv_format='generic'):
                    "FeeAmount", "FeeCurrency", "Exchange", "Group", "Comment", "Date"]
     elif csv_format == 'generic':
         headers = ["Layer", "RewardAmount", "Date"]
+    elif csv_format == 'cointracker':
+        headers = ["Date", "Received Quantity", "Received Currency", 
+                   "Sent Quantity", "Sent Currency", "Fee Amount", "Fee Currency", "Tag"]
 
     writer.writerow(headers)
 
@@ -114,6 +117,9 @@ def export_to_csv(transactions, filename=None, csv_format='generic'):
         elif csv_format == 'generic':
             layer_id, reward_amount, _, _, _, _, _, _, _, _, date, _ = transaction
             writer.writerow([layer_id, reward_amount, date])
+        elif csv_format == 'cointracker':
+            _, reward_amount, currency, _, _, _, _, _, _, _, date, _ = transaction
+            writer.writerow([date, reward_amount, currency, "", "", "", "", "Mining Reward"])
 
     if filename:
         print(f"Export completed successfully. Data written to {filename}")
@@ -125,9 +131,15 @@ def main():
     parser.add_argument('--end_date', type=str, help='End date (inclusive), format YYYY-MM-DD', default=None)
     parser.add_argument('--db_path', type=str, help='Path to the SQLite database file', default=None)
     parser.add_argument('--output_file', type=str, help='Path to output CSV file', default=None)
-    parser.add_argument('--csv_format', type=str, help='Format of the CSV file (e.g., tokentax, generic)', default='generic')
+    parser.add_argument('--csv_format', type=str, help='Format of the CSV file (e.g., tokentax, generic, cointracker)', default='generic')
 
     args = parser.parse_args()
+
+    # Validate csv_format
+    valid_formats = ['tokentax', 'generic', 'cointracker']
+    if args.csv_format not in valid_formats:
+        print(f"Error: Invalid CSV format '{args.csv_format}'. Valid formats are: {', '.join(valid_formats)}")
+        sys.exit(1)
 
     if args.start_date:
         args.start_date = datetime.strptime(args.start_date, '%Y-%m-%d')

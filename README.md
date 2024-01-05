@@ -6,7 +6,7 @@ This script is designed to export Spacemesh crypto transactions, specifically re
 ## Features
 - Fetches reward transactions from a Spacemesh `state.sql` database.
 - Converts transactions into CSV format.
-- Supports different CSV formats: `tokentax` and `generic` (default).
+- Supports different CSV formats: `tokentax`, `cointracker`, and `generic` (default).
 - Customizable to include transactions within a specified date range.
 - Command-line interface for easy use and integration.
 
@@ -22,7 +22,7 @@ This script is designed to export Spacemesh crypto transactions, specifically re
 - `--end_date`: End date (inclusive), in `YYYY-MM-DD` format (optional).
 - `--db_path`: Path to the SQLite database file (required).
 - `--output_file`: Path to output CSV file. If not specified, outputs to `stdout` (optional).
-- `--csv_format`: Format of the CSV file, either `tokentax` or `generic`. Default is `generic` (optional).
+- `--csv_format`: Format of the CSV file, `cointracker`, `tokentax` or `generic`. Default is `generic` (optional).
 
 ### Examples
 
@@ -46,8 +46,9 @@ Replace `sm1qv...` with your actual coinbase address in bech32 format. Adjust th
 ## Output Formats
 - `generic`: Simplified format with only Layer, RewardAmount, and Date columns. This is the default.
 - `tokentax`: This format can be parsed automatically by TokenTax.
+- `cointracker`: This format can be parsed automatically by CoinTracker.
 
-To select a format, use the `--csv_format` argument, for example, `--csv_format generic`.
+To select a format, use the `--csv_format` argument, for example, `--csv_format tokentax`.
 
 ## Notes
 - Ensure that the path to the `state.sql` file is correct and accessible.
