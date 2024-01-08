@@ -119,7 +119,9 @@ def export_to_csv(transactions, filename=None, csv_format='generic'):
 
     for transaction in transactions:
         if csv_format == 'tokentax':
-            writer.writerow(transaction)
+            # Exclude layer_id for 'tokentax' format
+            tokentax_data = transaction[:-1]  # Exclude the last element (layer_id)
+            writer.writerow(tokentax_data)
         elif csv_format == 'generic':
             _, reward_amount, _, _, _, _, _, _, _, _, date, layer_id = transaction
             writer.writerow([layer_id, reward_amount, date])
