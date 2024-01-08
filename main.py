@@ -1,7 +1,7 @@
 import sqlite3
 import csv
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 import sys
 
 def bech32_to_hex(bech32_address):
@@ -44,7 +44,13 @@ def bech32_to_hex(bech32_address):
     return bytes(decoded_bytes).hex()
 
 def calculate_layer_from_date(date, genesis_date_str="2023-07-14T08:00:00+00:00", layer_interval=300):
-    genesis_date = datetime.fromisoformat(genesis_date_str.replace("Z", "+00:00"))
+    # Parse the genesis date as offset-aware (UTC)
+    genesis_date = datetime.fromisoformat(genesis_date_str)
+
+    # Ensure the input date is also offset-aware (UTC)
+    if date.tzinfo is None or date.tzinfo.utcoffset(date) is None:
+        date = date.replace(tzinfo=timezone.utc)
+
     layer = int((date - genesis_date).total_seconds() / layer_interval)
     return layer
 
