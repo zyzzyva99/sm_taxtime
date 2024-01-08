@@ -121,7 +121,7 @@ def export_to_csv(transactions, filename=None, csv_format='generic'):
         if csv_format == 'tokentax':
             writer.writerow(transaction)
         elif csv_format == 'generic':
-            layer_id, reward_amount, _, _, _, _, _, _, _, _, date, _ = transaction
+            _, reward_amount, _, _, _, _, _, _, _, _, date, layer_id = transaction
             writer.writerow([layer_id, reward_amount, date])
         elif csv_format == 'cointracker':
             _, reward_amount, currency, _, _, _, _, _, _, _, date, _ = transaction
